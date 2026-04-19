@@ -8,30 +8,61 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const getUsersDb = () => JSON.parse(localStorage.getItem('users_db') || '{}');
+  const saveUsersDb = (db) => localStorage.setItem('users_db', JSON.stringify(db));
+
   useEffect(() => {
-    // Mock check for logged-in user
-    const user = localStorage.getItem('mockUser');
-    if (user) {
-      setCurrentUser(JSON.parse(user));
+    // Mock check for logged-in user session
+    const activeEmail = localStorage.getItem('mockUserSession');
+    if (activeEmail) {
+      const db = getUsersDb();
+      if (db[activeEmail]) {
+        setCurrentUser(db[activeEmail]);
+      }
     }
     setLoading(false);
   }, []);
 
   const login = (email, password) => {
-    // Mock login
-    const user = { uid: '12345', email, displayName: 'Test User' };
-    setCurrentUser(user);
-    localStorage.setItem('mockUser', JSON.stringify(user));
+    const db = getUsersDb();
+    if (db[email]) {
+      setCurrentUser(db[email]);
+      localStorage.setItem('mockUserSession', email);
+      return Promise.resolve();
+    } else {
+      return Promise.reject(new Error("Account not found. Please sign up."));
+    }
+  };
+
+  const signup = (email, password, name, city) => {
+    const db = getUsersDb();
+    if (db[email]) {
+      return Promise.reject(new Error("Account already exists with this email. Please sign in."));
+    }
+    
+    const newUser = { uid: Date.now().toString(), email, displayName: name, city, profileImage: null };
+    db[email] = newUser;
+    saveUsersDb(db);
+    
+    setCurrentUser(newUser);
+    localStorage.setItem('mockUserSession', email);
     return Promise.resolve();
   };
 
-  const signup = (email, password) => {
-    return login(email, password);
+  const updateProfile = (updates) => {
+    const updatedUser = { ...currentUser, ...updates };
+    setCurrentUser(updatedUser);
+    
+    const db = getUsersDb();
+    db[updatedUser.email] = updatedUser;
+    saveUsersDb(db);
+    
+    return Promise.resolve();
   };
 
   const logout = () => {
     setCurrentUser(null);
-    localStorage.removeItem('mockUser');
+    localStorage.removeItem('mockUserSession');
     return Promise.resolve();
   };
 
@@ -40,6 +71,7 @@ export const AuthProvider = ({ children }) => {
     login,
     signup,
     logout,
+    updateProfile,
   };
 
   return (

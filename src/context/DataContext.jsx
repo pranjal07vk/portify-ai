@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useAuth } from './AuthContext';
 
 const DataContext = createContext();
 
@@ -17,10 +18,51 @@ const initialCertifications = [
   { id: '1', name: 'AWS Certified Solutions Architect', issuer: 'Amazon Web Services', tags: ['AWS', 'Cloud', 'Architecture'] }
 ];
 
+const initialOthers = [
+  { id: '1', title: 'Open Source Contributor', description: 'Contributed to React core repository.', tags: ['React', 'Open Source'] }
+];
+
 export const DataProvider = ({ children }) => {
-  const [projects, setProjects] = useState(initialProjects);
-  const [experiences, setExperiences] = useState(initialExperiences);
-  const [certifications, setCertifications] = useState(initialCertifications);
+  const { currentUser } = useAuth();
+  
+  const [projects, setProjects] = useState([]);
+  const [experiences, setExperiences] = useState([]);
+  const [certifications, setCertifications] = useState([]);
+  const [others, setOthers] = useState([]);
+
+  // Load data when user changes
+  useEffect(() => {
+    if (currentUser?.email) {
+      const savedData = localStorage.getItem(`portify_data_${currentUser.email}`);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        setProjects(parsed.projects || []);
+        setExperiences(parsed.experiences || []);
+        setCertifications(parsed.certifications || []);
+        setOthers(parsed.others || []);
+      } else {
+        // New user gets initial random data
+        setProjects(initialProjects);
+        setExperiences(initialExperiences);
+        setCertifications(initialCertifications);
+        setOthers(initialOthers);
+      }
+    } else {
+      // Clear data if logged out
+      setProjects([]);
+      setExperiences([]);
+      setCertifications([]);
+      setOthers([]);
+    }
+  }, [currentUser]);
+
+  // Save data whenever it changes
+  useEffect(() => {
+    if (currentUser?.email) {
+      const dataToSave = { projects, experiences, certifications, others };
+      localStorage.setItem(`portify_data_${currentUser.email}`, JSON.stringify(dataToSave));
+    }
+  }, [projects, experiences, certifications, others, currentUser]);
 
   const addProject = (project) => setProjects([...projects, { ...project, id: Date.now().toString() }]);
   const updateProject = (id, updated) => setProjects(projects.map(p => p.id === id ? { ...p, ...updated } : p));
@@ -34,10 +76,15 @@ export const DataProvider = ({ children }) => {
   const updateCertification = (id, updated) => setCertifications(certifications.map(c => c.id === id ? { ...c, ...updated } : c));
   const deleteCertification = (id) => setCertifications(certifications.filter(c => c.id !== id));
 
+  const addOther = (item) => setOthers([...others, { ...item, id: Date.now().toString() }]);
+  const updateOther = (id, updated) => setOthers(others.map(o => o.id === id ? { ...o, ...updated } : o));
+  const deleteOther = (id) => setOthers(others.filter(o => o.id !== id));
+
   const value = {
     projects, addProject, updateProject, deleteProject,
     experiences, addExperience, updateExperience, deleteExperience,
-    certifications, addCertification, updateCertification, deleteCertification
+    certifications, addCertification, updateCertification, deleteCertification,
+    others, addOther, updateOther, deleteOther
   };
 
   return (

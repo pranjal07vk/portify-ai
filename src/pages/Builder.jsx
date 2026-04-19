@@ -20,7 +20,7 @@ const Builder = () => {
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
-  const { projects, experiences } = useData();
+  const { projects, experiences, others } = useData();
   const navigate = useNavigate();
 
   const handleGenerate = (e) => {
@@ -39,16 +39,15 @@ const Builder = () => {
         // Execute matching logic
         const matchedProjects = matchKeywords(`${role} ${description}`, projects).slice(0, 3);
         const matchedExperiences = matchKeywords(`${role} ${description}`, experiences).slice(0, 3);
+        const matchedOthers = matchKeywords(`${role} ${description}`, others).slice(0, 3);
         
         const portfolioId = generatePortfolioId();
-        // In a real app, save this generated portfolio to DB with the ID
-        // For demo, we'll pass state via navigation or assume the Portfolio page does the matching.
-        // Actually, passing via React Router state is easiest for this demo.
         navigate(`/portfolio/${portfolioId}`, { 
           state: { 
             role, 
             matchedProjects, 
-            matchedExperiences 
+            matchedExperiences,
+            matchedOthers
           } 
         });
       }

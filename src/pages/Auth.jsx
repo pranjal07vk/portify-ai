@@ -24,20 +24,24 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [city, setCity] = useState('');
+  const [authError, setAuthError] = useState('');
   const { login, signup } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setAuthError('');
       if (isLogin) {
         await login(email, password);
       } else {
-        await signup(email, password);
+        await signup(email, password, name, city);
       }
       navigate('/dashboard');
     } catch (error) {
-      console.error(error);
+      setAuthError(error.message);
     }
   };
 
@@ -91,6 +95,38 @@ const Auth = () => {
               </motion.div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
+                {authError && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 text-red-500 text-sm font-medium text-center">
+                    {authError}
+                  </motion.div>
+                )}
+                {!isLogin && (
+                  <>
+                    <motion.div variants={itemVariants}>
+                      <Input 
+                        label="Full Name" 
+                        type="text" 
+                        id="name"
+                        required={!isLogin}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="John Doe"
+                      />
+                    </motion.div>
+                    <motion.div variants={itemVariants}>
+                      <Input 
+                        label="City" 
+                        type="text" 
+                        id="city"
+                        required={!isLogin}
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="New York"
+                      />
+                    </motion.div>
+                  </>
+                )}
+                
                 <motion.div variants={itemVariants}>
                   <Input 
                     label="Email address" 
@@ -124,7 +160,11 @@ const Auth = () => {
 
               <motion.div variants={itemVariants} className="mt-6 text-center">
                 <button 
-                  onClick={() => setIsLogin(!isLogin)}
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setAuthError('');
+                  }}
                   className="text-sm text-[var(--color-text-muted)] hover:text-white transition-colors"
                 >
                   {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}

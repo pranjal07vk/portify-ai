@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Briefcase, Folder, Link as LinkIcon, Paperclip, ChevronLeft } from 'lucide-react';
+import { Briefcase, Folder, Link as LinkIcon, Paperclip, ChevronLeft, Star } from 'lucide-react';
 import AnimatedLayout from '../components/layout/AnimatedLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -27,9 +27,7 @@ const Portfolio = () => {
     if (location.state) {
       setData(location.state);
     } else {
-      // If no state, perhaps navigated directly. We should probably redirect or show an error.
-      // But for demo, let's just use empty arrays.
-      setData({ role: 'Unknown Role', matchedProjects: [], matchedExperiences: [] });
+      setData({ role: 'Unknown Role', matchedProjects: [], matchedExperiences: [], matchedOthers: [] });
     }
   }, [location.state]);
 
@@ -151,6 +149,48 @@ const Portfolio = () => {
                 ))
               ) : (
                 <p className="text-[var(--color-text-muted)] col-span-full">No highly relevant projects found for this role.</p>
+              )}
+            </div>
+          </motion.section>
+
+          {/* Other Achievements Section */}
+          <motion.section 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={sectionVariants}
+            className="mb-16"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 rounded-xl bg-purple-500/10 text-purple-400">
+                <Star size={24} />
+              </div>
+              <h2 className="text-3xl font-bold">Other Achievements</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {data.matchedOthers?.length > 0 ? (
+                data.matchedOthers.map((item) => (
+                  <Card key={item.id} className="h-full flex flex-col border-t-2 border-t-purple-500/50">
+                    <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
+                    <p className="text-[var(--color-text-muted)] mb-6 flex-1 text-lg">{item.description}</p>
+                    {item.attachment && (
+                      <div className="flex items-center gap-2 text-sm text-purple-400 bg-purple-500/10 w-fit px-3 py-1.5 rounded-lg mb-4 cursor-pointer hover:bg-purple-500/20 transition-colors">
+                        <Paperclip size={14} />
+                        <span className="truncate max-w-[200px]">{item.attachment}</span>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-2 mt-auto">
+                      {item.tags.map(tag => (
+                        <span key={tag} className="text-xs px-2 py-1 rounded-md bg-white/5 text-[var(--color-text-main)] border border-[var(--color-border-subtle)]">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <p className="text-[var(--color-text-muted)] col-span-full">No other highly relevant achievements found.</p>
               )}
             </div>
           </motion.section>
