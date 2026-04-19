@@ -29,6 +29,7 @@ export const DataProvider = ({ children }) => {
   const [experiences, setExperiences] = useState([]);
   const [certifications, setCertifications] = useState([]);
   const [others, setOthers] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Load data when user changes
   useEffect(() => {
@@ -47,22 +48,24 @@ export const DataProvider = ({ children }) => {
         setCertifications(initialCertifications);
         setOthers(initialOthers);
       }
+      setIsLoaded(true);
     } else {
       // Clear data if logged out
       setProjects([]);
       setExperiences([]);
       setCertifications([]);
       setOthers([]);
+      setIsLoaded(false);
     }
   }, [currentUser]);
 
   // Save data whenever it changes
   useEffect(() => {
-    if (currentUser?.email) {
+    if (isLoaded && currentUser?.email) {
       const dataToSave = { projects, experiences, certifications, others };
       localStorage.setItem(`portify_data_${currentUser.email}`, JSON.stringify(dataToSave));
     }
-  }, [projects, experiences, certifications, others, currentUser]);
+  }, [projects, experiences, certifications, others, currentUser, isLoaded]);
 
   const addProject = (project) => setProjects([...projects, { ...project, id: Date.now().toString() }]);
   const updateProject = (id, updated) => setProjects(projects.map(p => p.id === id ? { ...p, ...updated } : p));
