@@ -96,3 +96,39 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
 }
+
+/* Print Styles for PDF Export */
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  .bg-grid, .bg-glow {
+    display: none !important;
+  }
+  .glass, .glass-card {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+    color: black !important;
+  }
+  * {
+    color: black !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  .print\:m-0 {
+    margin: 0 !important;
+  }
+  .print\:p-0 {
+    padding: 0 !important;
+  }
+  .print\:w-full {
+    width: 100% !important;
+  }
+  .print\:max-w-full {
+    max-width: 100% !important;
+  }
+}

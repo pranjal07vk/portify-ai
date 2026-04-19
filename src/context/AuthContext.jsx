@@ -34,13 +34,22 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = (email, password, name, city) => {
+  const signup = (email, password, name, city, phone) => {
     const db = getUsersDb();
     if (db[email]) {
       return Promise.reject(new Error("Account already exists with this email. Please sign in."));
     }
     
-    const newUser = { uid: Date.now().toString(), email, displayName: name, city, profileImage: null };
+    const newUser = { 
+      uid: Date.now().toString(), 
+      email, 
+      displayName: name, 
+      city, 
+      phone: phone || '', 
+      bio: '', 
+      skills: '', 
+      profileImage: null 
+    };
     db[email] = newUser;
     saveUsersDb(db);
     

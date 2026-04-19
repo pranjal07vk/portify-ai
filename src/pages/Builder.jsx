@@ -6,6 +6,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { generatePortfolioId, matchKeywords } from '../utils/matching';
 
 const loadingTexts = [
@@ -21,6 +22,7 @@ const Builder = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const { projects, experiences, others } = useData();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   const handleGenerate = (e) => {
@@ -37,14 +39,20 @@ const Builder = () => {
         clearInterval(interval);
         
         // Execute matching logic
-        const matchedProjects = matchKeywords(`${role} ${description}`, projects).slice(0, 3);
-        const matchedExperiences = matchKeywords(`${role} ${description}`, experiences).slice(0, 3);
-        const matchedOthers = matchKeywords(`${role} ${description}`, others).slice(0, 3);
+        const matchedProjects = matchKeywords(`${role} ${description}`, projects).slice(0, 6);
+        const matchedExperiences = matchKeywords(`${role} ${description}`, experiences).slice(0, 6);
+        const matchedOthers = matchKeywords(`${role} ${description}`, others).slice(0, 6);
+        
+        // Generate a dynamic intro based on role and user skills
+        const topSkills = currentUser?.skills ? currentUser.skills.split(',').slice(0, 3).join(', ') : 'modern technologies';
+        const generatedIntro = `A highly motivated and creative ${role} with expertise in ${topSkills}. I am passionate about solving complex problems, delivering high-quality results, and continuously learning to bring value to forward-thinking teams.`;
         
         const portfolioId = generatePortfolioId();
         navigate(`/portfolio/${portfolioId}`, { 
           state: { 
-            role, 
+            role,
+            user: currentUser,
+            generatedIntro,
             matchedProjects, 
             matchedExperiences,
             matchedOthers

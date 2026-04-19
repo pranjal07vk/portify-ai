@@ -24,8 +24,10 @@ const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
+  const [phone, setPhone] = useState('');
   const [authError, setAuthError] = useState('');
   const { login, signup } = useAuth();
   const navigate = useNavigate();
@@ -34,10 +36,16 @@ const Auth = () => {
     e.preventDefault();
     try {
       setAuthError('');
+      
+      if (!isLogin && password !== confirmPassword) {
+        setAuthError('Passwords do not match.');
+        return;
+      }
+
       if (isLogin) {
         await login(email, password);
       } else {
-        await signup(email, password, name, city);
+        await signup(email, password, name, city, phone);
       }
       navigate('/dashboard');
     } catch (error) {
@@ -124,6 +132,16 @@ const Auth = () => {
                         placeholder="New York"
                       />
                     </motion.div>
+                    <motion.div variants={itemVariants}>
+                      <Input 
+                        label="Phone Number" 
+                        type="tel" 
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+1 (555) 000-0000"
+                      />
+                    </motion.div>
                   </>
                 )}
                 
@@ -150,6 +168,20 @@ const Auth = () => {
                     placeholder="••••••••"
                   />
                 </motion.div>
+
+                {!isLogin && (
+                  <motion.div variants={itemVariants}>
+                    <Input 
+                      label="Confirm Password" 
+                      type="password" 
+                      id="confirmPassword"
+                      required={!isLogin}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                    />
+                  </motion.div>
+                )}
 
                 <motion.div variants={itemVariants}>
                   <Button type="submit" className="w-full py-3">
