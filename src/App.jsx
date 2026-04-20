@@ -10,6 +10,7 @@ const Auth = React.lazy(() => import('./pages/Auth'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Builder = React.lazy(() => import('./pages/Builder'));
 const Portfolio = React.lazy(() => import('./pages/Portfolio'));
+const PortfoliosList = React.lazy(() => import('./pages/PortfoliosList'));
 
 const ProtectedRoute = ({ children }) => {
   const { currentUser } = useAuth();
@@ -26,6 +27,7 @@ const AnimatedRoutes = () => {
         <Route path="/auth" element={<Auth />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/generate" element={<ProtectedRoute><Builder /></ProtectedRoute>} />
+        <Route path="/portfolios" element={<ProtectedRoute><PortfoliosList /></ProtectedRoute>} />
         <Route path="/portfolio/:id" element={<Portfolio />} />
       </Routes>
     </AnimatePresence>
@@ -42,7 +44,7 @@ function App() {
           
           {/* Header placeholder */}
           <header className="glass sticky top-0 z-50 py-4 px-6 flex justify-between items-center">
-            <div className="text-xl font-bold text-[var(--color-primary)]">Portify</div>
+            <div className="text-xl font-bold text-[var(--color-primary)]">CareerFolio</div>
             {/* Nav placeholder */}
           </header>
 

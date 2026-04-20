@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Briefcase, Folder, Link as LinkIcon, Paperclip, ChevronLeft, Star, Download, User, Mail, Phone, MapPin, Zap } from 'lucide-react';
+import { Briefcase, Folder, Link as LinkIcon, Paperclip, ChevronLeft, Star, Download, User, Mail, Phone, MapPin, Zap, Trash2, Edit2, Check } from 'lucide-react';
 import AnimatedLayout from '../components/layout/AnimatedLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 50 },
@@ -20,13 +21,36 @@ const Portfolio = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [data, setData] = useState(null);
+  
   const [customIntro, setCustomIntro] = useState('');
   const [isEditingIntro, setIsEditingIntro] = useState(false);
+
+  const [customBio, setCustomBio] = useState('');
+  const [isEditingBio, setIsEditingBio] = useState(false);
+
+  const [customSkills, setCustomSkills] = useState([]);
+  const [isEditingSkills, setIsEditingSkills] = useState(false);
+  const [skillsInput, setSkillsInput] = useState('');
+
+  const [customProjects, setCustomProjects] = useState([]);
+  const [customExperiences, setCustomExperiences] = useState([]);
+  const [customOthers, setCustomOthers] = useState([]);
+  
+  const [editingItemId, setEditingItemId] = useState(null);
 
   useEffect(() => {
     if (location.state) {
       setData(location.state);
       setCustomIntro(location.state.generatedIntro || '');
+      setCustomBio(location.state.user?.bio || '');
+      
+      const initialSkills = location.state.user?.skills ? location.state.user.skills.split(',').map(s => s.trim()).filter(s => s) : [];
+      setCustomSkills(initialSkills);
+      setSkillsInput(initialSkills.join(', '));
+      
+      setCustomProjects(location.state.matchedProjects || []);
+      setCustomExperiences(location.state.matchedExperiences || []);
+      setCustomOthers(location.state.matchedOthers || []);
     } else {
       setData({ role: 'Unknown Role', user: null, generatedIntro: '', matchedProjects: [], matchedExperiences: [], matchedOthers: [] });
     }
@@ -34,8 +58,15 @@ const Portfolio = () => {
 
   if (!data) return null;
 
-  const { user, role, matchedProjects, matchedExperiences, matchedOthers } = data;
-  const skillsArray = user?.skills ? user.skills.split(',').map(s => s.trim()).filter(s => s) : [];
+  const { user, role } = data;
+
+  const handleUpdateItem = (setter, items, id, field, value) => {
+    setter(items.map(item => item.id === id ? { ...item, [field]: value } : item));
+  };
+
+  const handleDeleteItem = (setter, items, id) => {
+    setter(items.filter(item => item.id !== id));
+  };
 
   return (
     <AnimatedLayout>
@@ -81,9 +112,6 @@ const Portfolio = () => {
             <h2 className="text-2xl font-medium text-[var(--color-primary)] mb-6">
               {role}
             </h2>
-            <p className="text-lg text-[var(--color-text-muted)] flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10">
-              <LinkIcon size={16} /> portify.ai/p/{id}
-            </p>
           </motion.header>
 
           {/* Section 1.5: Editable Generated Introduction */}
@@ -123,175 +151,298 @@ const Portfolio = () => {
           </motion.section>
 
           {/* Section 2: About Me / Bio */}
-          {user?.bio && (
-            <motion.section 
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={sectionVariants}
-              className="mb-16"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 rounded-xl bg-orange-500/10 text-orange-400">
-                  <User size={24} />
-                </div>
-                <h2 className="text-3xl font-bold">About Me</h2>
+          <motion.section 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={sectionVariants}
+            className="mb-16"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 rounded-xl bg-orange-500/10 text-orange-400">
+                <User size={24} />
               </div>
-              <Card hover={false} className="border-l-4 border-l-orange-500">
-                <p className="text-xl text-[var(--color-text-main)] leading-relaxed">{user.bio}</p>
-                {user.city && (
+              <h2 className="text-3xl font-bold">About Me</h2>
+            </div>
+            
+            {isEditingBio ? (
+              <Card hover={false} className="border-l-4 border-l-orange-500 print:hidden">
+                <textarea 
+                  value={customBio} 
+                  onChange={(e) => setCustomBio(e.target.value)}
+                  className="w-full bg-transparent text-xl text-[var(--color-text-main)] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] rounded-lg resize-none"
+                  rows={4}
+                />
+                <div className="flex justify-end mt-4">
+                  <Button onClick={() => setIsEditingBio(false)} className="px-6">Save Bio</Button>
+                </div>
+              </Card>
+            ) : (
+              <Card 
+                hover={false} 
+                className="border-l-4 border-l-orange-500 group relative cursor-pointer border border-transparent hover:border-[var(--color-border-subtle)] transition-colors print:border-none print:hover:border-none"
+                onClick={() => setIsEditingBio(true)}
+                title="Click to edit bio"
+              >
+                <p className="text-xl text-[var(--color-text-main)] leading-relaxed">{customBio || 'Add your bio here.'}</p>
+                {user?.city && (
                   <div className="mt-4 flex items-center gap-2 text-[var(--color-text-muted)]">
                     <MapPin size={16} /> Based in {user.city}
                   </div>
                 )}
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 text-[var(--color-primary)] text-sm font-medium bg-[var(--color-primary)]/10 px-3 py-1 rounded-full print:hidden transition-opacity">
+                  Edit
+                </div>
               </Card>
-            </motion.section>
-          )}
+            )}
+          </motion.section>
 
           {/* Section 3: Services / Skills */}
-          {skillsArray.length > 0 && (
-            <motion.section 
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={sectionVariants}
-              className="mb-16"
-            >
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 rounded-xl bg-teal-500/10 text-teal-400">
-                  <Zap size={24} />
+          <motion.section 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={sectionVariants}
+            className="mb-16"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-3 rounded-xl bg-teal-500/10 text-teal-400">
+                <Zap size={24} />
+              </div>
+              <h2 className="text-3xl font-bold">Services & Skills</h2>
+            </div>
+            
+            {isEditingSkills ? (
+              <div className="bg-black/30 border border-[var(--color-border-subtle)] p-6 rounded-2xl print:hidden">
+                <Input 
+                  value={skillsInput} 
+                  onChange={(e) => setSkillsInput(e.target.value)}
+                  placeholder="Enter skills separated by commas"
+                />
+                <div className="flex justify-end mt-4">
+                  <Button onClick={() => {
+                    setCustomSkills(skillsInput.split(',').map(s => s.trim()).filter(s => s));
+                    setIsEditingSkills(false);
+                  }} className="px-6">Save Skills</Button>
                 </div>
-                <h2 className="text-3xl font-bold">Services & Skills</h2>
               </div>
-              <div className="flex flex-wrap gap-3">
-                {skillsArray.map((skill, idx) => (
-                  <div key={idx} className="px-5 py-3 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 font-medium text-lg">
-                    {skill}
-                  </div>
-                ))}
+            ) : (
+              <div 
+                className="group relative p-4 rounded-2xl cursor-pointer border border-transparent hover:border-[var(--color-border-subtle)] transition-colors min-h-[80px] print:p-0 print:border-none print:hover:border-none"
+                onClick={() => setIsEditingSkills(true)}
+                title="Click to edit skills"
+              >
+                <div className="flex flex-wrap gap-3">
+                  {customSkills.length > 0 ? customSkills.map((skill, idx) => (
+                    <div key={idx} className="px-5 py-3 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 font-medium text-lg">
+                      {skill}
+                    </div>
+                  )) : (
+                    <p className="text-[var(--color-text-muted)]">Add some skills...</p>
+                  )}
+                </div>
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-[var(--color-primary)] text-sm font-medium bg-[var(--color-primary)]/10 px-3 py-1 rounded-full print:hidden transition-opacity">
+                  Edit
+                </div>
               </div>
-            </motion.section>
-          )}
+            )}
+          </motion.section>
 
           {/* Section 4: Selected Works (Projects) */}
-          {matchedProjects.length > 0 && (
-            <motion.section 
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={sectionVariants}
-              className="mb-16"
-            >
-              <div className="flex items-center gap-3 mb-8">
-                <div className="p-3 rounded-xl bg-blue-500/10 text-blue-400">
-                  <Folder size={24} />
-                </div>
-                <h2 className="text-3xl font-bold">Selected Works</h2>
+          <motion.section 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={sectionVariants}
+            className="mb-16"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 rounded-xl bg-blue-500/10 text-blue-400">
+                <Folder size={24} />
               </div>
-              
-              <div className="space-y-8">
-                {matchedProjects.map((project) => (
-                  <Card key={project.id} hover={false} className="flex flex-col border-t-4 border-t-blue-500 p-8 shadow-lg">
-                    <div className="flex justify-between items-start mb-4">
-                      <h3 className="text-3xl font-bold text-white">{project.title}</h3>
-                    </div>
-                    
-                    <div className="mt-2 mb-6">
-                      <h4 className="text-sm uppercase tracking-wider text-[var(--color-text-muted)] font-semibold mb-2">Context & Results</h4>
-                      <p className="text-xl text-[var(--color-text-main)] leading-relaxed whitespace-pre-wrap">{project.description}</p>
-                    </div>
-
-                    {project.attachment && (
-                      <div className="flex items-center gap-2 text-sm text-blue-400 bg-blue-500/10 w-fit px-4 py-2 rounded-lg mb-6 border border-blue-500/20">
-                        <Paperclip size={16} />
-                        <span className="font-medium">Deliverable: {project.attachment}</span>
+              <h2 className="text-3xl font-bold">Selected Works</h2>
+            </div>
+            
+            <div className="space-y-8">
+              {customProjects.length === 0 && <p className="text-[var(--color-text-muted)]">No works added.</p>}
+              {customProjects.map((project) => (
+                <Card key={project.id} hover={false} className="group relative flex flex-col border-t-4 border-t-blue-500 p-8 shadow-lg">
+                  {editingItemId === project.id ? (
+                    <div className="print:hidden space-y-4">
+                      <Input value={project.title} onChange={(e) => handleUpdateItem(setCustomProjects, customProjects, project.id, 'title', e.target.value)} placeholder="Title" />
+                      <textarea 
+                        value={project.description} 
+                        onChange={(e) => handleUpdateItem(setCustomProjects, customProjects, project.id, 'description', e.target.value)}
+                        className="w-full bg-black/30 border border-[var(--color-border-subtle)] rounded-lg px-4 py-2 text-[var(--color-text-main)] resize-none"
+                        rows={4}
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button onClick={() => setEditingItemId(null)}>Done</Button>
                       </div>
-                    )}
-                    <div className="flex flex-wrap gap-2 mt-auto">
-                      {project.tags.map(tag => (
-                        <span key={tag} className="text-sm px-3 py-1 rounded-full bg-white/5 text-[var(--color-text-main)] border border-[var(--color-border-subtle)]">
-                          {tag}
-                        </span>
-                      ))}
                     </div>
-                  </Card>
-                ))}
-              </div>
-            </motion.section>
-          )}
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="text-3xl font-bold text-white">{project.title}</h3>
+                        <div className="hidden group-hover:flex items-center gap-2 print:hidden absolute top-4 right-4 bg-black/50 p-1 rounded-lg">
+                          <button onClick={() => setEditingItemId(project.id)} className="p-2 text-white/70 hover:text-white bg-white/10 rounded-md">
+                            <Edit2 size={16} />
+                          </button>
+                          <button onClick={() => handleDeleteItem(setCustomProjects, customProjects, project.id)} className="p-2 text-red-400 hover:text-red-300 bg-red-500/10 rounded-md">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-2 mb-6">
+                        <h4 className="text-sm uppercase tracking-wider text-[var(--color-text-muted)] font-semibold mb-2">Context & Results</h4>
+                        <p className="text-xl text-[var(--color-text-main)] leading-relaxed whitespace-pre-wrap">{project.description}</p>
+                      </div>
+
+                      {project.attachment && (
+                        <div className="flex items-center gap-2 text-sm text-blue-400 bg-blue-500/10 w-fit px-4 py-2 rounded-lg mb-6 border border-blue-500/20">
+                          <Paperclip size={16} />
+                          <span className="font-medium">Deliverable: {project.attachment}</span>
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-2 mt-auto">
+                        {project.tags.map(tag => (
+                          <span key={tag} className="text-sm px-3 py-1 rounded-full bg-white/5 text-[var(--color-text-main)] border border-[var(--color-border-subtle)]">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </motion.section>
 
           {/* Section 5: Relevant Experience */}
-          {matchedExperiences.length > 0 && (
-            <motion.section 
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={sectionVariants}
-              className="mb-16"
-            >
-              <div className="flex items-center gap-3 mb-8">
-                <div className="p-3 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
-                  <Briefcase size={24} />
-                </div>
-                <h2 className="text-3xl font-bold">Relevant Experience</h2>
+          <motion.section 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={sectionVariants}
+            className="mb-16"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 rounded-xl bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                <Briefcase size={24} />
               </div>
-              
-              <div className="space-y-6">
-                {matchedExperiences.map((exp) => (
-                  <Card key={exp.id} hover={false} className="border-l-4 border-l-[var(--color-primary)]">
-                    <h3 className="text-2xl font-bold mb-4 text-white">{exp.role}</h3>
-                    <p className="text-[var(--color-text-main)] mb-6 text-lg leading-relaxed">{exp.description}</p>
-                    {exp.attachment && (
-                      <div className="flex items-center gap-2 text-sm text-[var(--color-primary)] bg-[var(--color-primary)]/10 w-fit px-4 py-2 rounded-lg mb-6">
-                        <Paperclip size={16} />
-                        <span className="font-medium">Attached: {exp.attachment}</span>
+              <h2 className="text-3xl font-bold">Relevant Experience</h2>
+            </div>
+            
+            <div className="space-y-6">
+              {customExperiences.length === 0 && <p className="text-[var(--color-text-muted)]">No experiences added.</p>}
+              {customExperiences.map((exp) => (
+                <Card key={exp.id} hover={false} className="group relative border-l-4 border-l-[var(--color-primary)]">
+                  {editingItemId === exp.id ? (
+                    <div className="print:hidden space-y-4">
+                      <Input value={exp.role} onChange={(e) => handleUpdateItem(setCustomExperiences, customExperiences, exp.id, 'role', e.target.value)} placeholder="Role/Title" />
+                      <textarea 
+                        value={exp.description} 
+                        onChange={(e) => handleUpdateItem(setCustomExperiences, customExperiences, exp.id, 'description', e.target.value)}
+                        className="w-full bg-black/30 border border-[var(--color-border-subtle)] rounded-lg px-4 py-2 text-[var(--color-text-main)] resize-none"
+                        rows={4}
+                      />
+                      <div className="flex justify-end gap-2">
+                        <Button onClick={() => setEditingItemId(null)}>Done</Button>
                       </div>
-                    )}
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      {exp.tags.map(tag => (
-                        <span key={tag} className="text-sm px-3 py-1 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
-                          {tag}
-                        </span>
-                      ))}
                     </div>
-                  </Card>
-                ))}
-              </div>
-            </motion.section>
-          )}
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="text-2xl font-bold text-white">{exp.role}</h3>
+                        <div className="hidden group-hover:flex items-center gap-2 print:hidden absolute top-4 right-4 bg-black/50 p-1 rounded-lg">
+                          <button onClick={() => setEditingItemId(exp.id)} className="p-2 text-white/70 hover:text-white bg-white/10 rounded-md">
+                            <Edit2 size={16} />
+                          </button>
+                          <button onClick={() => handleDeleteItem(setCustomExperiences, customExperiences, exp.id)} className="p-2 text-red-400 hover:text-red-300 bg-red-500/10 rounded-md">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-[var(--color-text-main)] mb-6 text-lg leading-relaxed">{exp.description}</p>
+                      {exp.attachment && (
+                        <div className="flex items-center gap-2 text-sm text-[var(--color-primary)] bg-[var(--color-primary)]/10 w-fit px-4 py-2 rounded-lg mb-6">
+                          <Paperclip size={16} />
+                          <span className="font-medium">Attached: {exp.attachment}</span>
+                        </div>
+                      )}
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        {exp.tags.map(tag => (
+                          <span key={tag} className="text-sm px-3 py-1 rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </motion.section>
 
           {/* Section 6: Other Achievements */}
-          {matchedOthers?.length > 0 && (
-            <motion.section 
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: "-100px" }}
-              variants={sectionVariants}
-              className="mb-16"
-            >
-              <div className="flex items-center gap-3 mb-8">
-                <div className="p-3 rounded-xl bg-purple-500/10 text-purple-400">
-                  <Star size={24} />
-                </div>
-                <h2 className="text-3xl font-bold">Other Achievements</h2>
+          <motion.section 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={sectionVariants}
+            className="mb-16"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 rounded-xl bg-purple-500/10 text-purple-400">
+                <Star size={24} />
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {matchedOthers.map((item) => (
-                  <Card key={item.id} hover={false} className="h-full flex flex-col border-t-2 border-t-purple-500/50">
-                    <h3 className="text-xl font-bold mb-4 text-white">{item.title}</h3>
-                    <p className="text-[var(--color-text-muted)] mb-6 flex-1 text-base">{item.description}</p>
-                    {item.attachment && (
-                      <div className="flex items-center gap-2 text-sm text-purple-400 bg-purple-500/10 w-fit px-3 py-1.5 rounded-lg mb-4">
-                        <Paperclip size={14} />
-                        <span className="truncate max-w-[200px]">{item.attachment}</span>
+              <h2 className="text-3xl font-bold">Other Achievements</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {customOthers.length === 0 && <p className="text-[var(--color-text-muted)] col-span-full">No other achievements added.</p>}
+              {customOthers.map((item) => (
+                <Card key={item.id} hover={false} className="group relative h-full flex flex-col border-t-2 border-t-purple-500/50">
+                  {editingItemId === item.id ? (
+                    <div className="print:hidden space-y-4 flex-1">
+                      <Input value={item.title} onChange={(e) => handleUpdateItem(setCustomOthers, customOthers, item.id, 'title', e.target.value)} placeholder="Title" />
+                      <textarea 
+                        value={item.description} 
+                        onChange={(e) => handleUpdateItem(setCustomOthers, customOthers, item.id, 'description', e.target.value)}
+                        className="w-full bg-black/30 border border-[var(--color-border-subtle)] rounded-lg px-4 py-2 text-[var(--color-text-main)] resize-none"
+                        rows={4}
+                      />
+                      <div className="flex justify-end gap-2 mt-auto pt-4">
+                        <Button onClick={() => setEditingItemId(null)}>Done</Button>
                       </div>
-                    )}
-                  </Card>
-                ))}
-              </div>
-            </motion.section>
-          )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="text-xl font-bold text-white pr-16">{item.title}</h3>
+                        <div className="hidden group-hover:flex items-center gap-1 print:hidden absolute top-4 right-4 bg-black/50 p-1 rounded-lg">
+                          <button onClick={() => setEditingItemId(item.id)} className="p-1.5 text-white/70 hover:text-white bg-white/10 rounded-md">
+                            <Edit2 size={14} />
+                          </button>
+                          <button onClick={() => handleDeleteItem(setCustomOthers, customOthers, item.id)} className="p-1.5 text-red-400 hover:text-red-300 bg-red-500/10 rounded-md">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-[var(--color-text-muted)] mb-6 flex-1 text-base">{item.description}</p>
+                      {item.attachment && (
+                        <div className="flex items-center gap-2 text-sm text-purple-400 bg-purple-500/10 w-fit px-3 py-1.5 rounded-lg mb-4">
+                          <Paperclip size={14} />
+                          <span className="truncate max-w-[200px]">{item.attachment}</span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </motion.section>
 
           {/* Section 7: Contact Information */}
           <motion.section 

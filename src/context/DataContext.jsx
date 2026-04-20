@@ -29,6 +29,7 @@ export const DataProvider = ({ children }) => {
   const [experiences, setExperiences] = useState([]);
   const [certifications, setCertifications] = useState([]);
   const [others, setOthers] = useState([]);
+  const [generatedPortfolios, setGeneratedPortfolios] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Load data when user changes
@@ -41,12 +42,14 @@ export const DataProvider = ({ children }) => {
         setExperiences(parsed.experiences || []);
         setCertifications(parsed.certifications || []);
         setOthers(parsed.others || []);
+        setGeneratedPortfolios(parsed.generatedPortfolios || []);
       } else {
         // New user gets initial random data
         setProjects(initialProjects);
         setExperiences(initialExperiences);
         setCertifications(initialCertifications);
         setOthers(initialOthers);
+        setGeneratedPortfolios([]);
       }
       setIsLoaded(true);
     } else {
@@ -55,6 +58,7 @@ export const DataProvider = ({ children }) => {
       setExperiences([]);
       setCertifications([]);
       setOthers([]);
+      setGeneratedPortfolios([]);
       setIsLoaded(false);
     }
   }, [currentUser]);
@@ -62,10 +66,10 @@ export const DataProvider = ({ children }) => {
   // Save data whenever it changes
   useEffect(() => {
     if (isLoaded && currentUser?.email) {
-      const dataToSave = { projects, experiences, certifications, others };
+      const dataToSave = { projects, experiences, certifications, others, generatedPortfolios };
       localStorage.setItem(`portify_data_${currentUser.email}`, JSON.stringify(dataToSave));
     }
-  }, [projects, experiences, certifications, others, currentUser, isLoaded]);
+  }, [projects, experiences, certifications, others, generatedPortfolios, currentUser, isLoaded]);
 
   const addProject = (project) => setProjects([...projects, { ...project, id: Date.now().toString() }]);
   const updateProject = (id, updated) => setProjects(projects.map(p => p.id === id ? { ...p, ...updated } : p));
@@ -83,11 +87,15 @@ export const DataProvider = ({ children }) => {
   const updateOther = (id, updated) => setOthers(others.map(o => o.id === id ? { ...o, ...updated } : o));
   const deleteOther = (id) => setOthers(others.filter(o => o.id !== id));
 
+  const addGeneratedPortfolio = (portfolio) => setGeneratedPortfolios([...generatedPortfolios, { ...portfolio, id: Date.now().toString(), createdAt: new Date().toISOString() }]);
+  const deleteGeneratedPortfolio = (id) => setGeneratedPortfolios(generatedPortfolios.filter(p => p.id !== id));
+
   const value = {
     projects, addProject, updateProject, deleteProject,
     experiences, addExperience, updateExperience, deleteExperience,
     certifications, addCertification, updateCertification, deleteCertification,
-    others, addOther, updateOther, deleteOther
+    others, addOther, updateOther, deleteOther,
+    generatedPortfolios, addGeneratedPortfolio, deleteGeneratedPortfolio
   };
 
   return (

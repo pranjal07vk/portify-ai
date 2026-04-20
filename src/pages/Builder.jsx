@@ -21,7 +21,7 @@ const Builder = () => {
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
-  const { projects, experiences, others } = useData();
+  const { projects, experiences, others, addGeneratedPortfolio } = useData();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -48,15 +48,24 @@ const Builder = () => {
         const generatedIntro = `A highly motivated and creative ${role} with expertise in ${topSkills}. I am passionate about solving complex problems, delivering high-quality results, and continuously learning to bring value to forward-thinking teams.`;
         
         const portfolioId = generatePortfolioId();
+        
+        const portfolioData = { 
+          role,
+          user: currentUser,
+          generatedIntro,
+          matchedProjects, 
+          matchedExperiences,
+          matchedOthers
+        };
+        
+        addGeneratedPortfolio({
+          portfolioId,
+          role,
+          ...portfolioData
+        });
+
         navigate(`/portfolio/${portfolioId}`, { 
-          state: { 
-            role,
-            user: currentUser,
-            generatedIntro,
-            matchedProjects, 
-            matchedExperiences,
-            matchedOthers
-          } 
+          state: portfolioData 
         });
       }
     }, 1500); // 1.5s per step

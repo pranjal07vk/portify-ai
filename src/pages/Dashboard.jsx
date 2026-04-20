@@ -21,7 +21,8 @@ const Dashboard = () => {
   const {
     projects, addProject, deleteProject,
     experiences, addExperience, deleteExperience,
-    others, addOther, deleteOther
+    others, addOther, deleteOther,
+    generatedPortfolios
   } = useData();
   const { currentUser, logout, updateProfile } = useAuth();
   const navigate = useNavigate();
@@ -219,6 +220,19 @@ const Dashboard = () => {
                         <p className="text-sm text-[var(--color-text-main)] bg-white/5 p-4 rounded-xl leading-relaxed">{currentUser.bio}</p>
                       </div>
                     )}
+                    
+                    <div 
+                      onClick={() => navigate('/portfolios')}
+                      className="cursor-pointer bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/20 hover:bg-[var(--color-primary)]/20 transition-colors p-4 rounded-xl flex justify-between items-center"
+                    >
+                      <div>
+                        <h4 className="text-sm font-semibold text-[var(--color-primary)] uppercase tracking-wider mb-1">Generated Portfolios</h4>
+                        <p className="text-2xl font-bold text-white">{generatedPortfolios?.length || 0}</p>
+                      </div>
+                      <div className="text-[var(--color-primary)]">
+                        &rarr;
+                      </div>
+                    </div>
                     {currentUser?.skills && (
                       <div>
                         <h4 className="text-sm font-semibold text-[var(--color-text-muted)] uppercase tracking-wider mb-2">Skills</h4>

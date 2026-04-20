@@ -23,7 +23,7 @@ const Home = () => {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="inline-block px-4 py-1.5 mb-6 rounded-full border border-[var(--color-primary)] bg-[var(--color-bg-card)] backdrop-blur-sm text-sm font-medium text-[var(--color-primary)]"
           >
-            Introducing Portify 1.0
+            Introducing CareerFolio 1.0
           </motion.div>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight leading-tight">
