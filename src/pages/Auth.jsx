@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import AnimatedLayout from '../components/layout/AnimatedLayout';
@@ -29,8 +29,14 @@ const Auth = () => {
   const [city, setCity] = useState('');
   const [phone, setPhone] = useState('');
   const [authError, setAuthError] = useState('');
-  const { login, signup } = useAuth();
+  const { login, signup, currentUser } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/dashboard');
+    }
+  }, [currentUser, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,7 +53,7 @@ const Auth = () => {
       } else {
         await signup(email, password, name, city, phone);
       }
-      navigate('/dashboard');
+      // Redirection is handled by the useEffect above once currentUser updates
     } catch (error) {
       setAuthError(error.message);
     }

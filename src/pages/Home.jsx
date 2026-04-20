@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import AnimatedLayout from '../components/layout/AnimatedLayout';
 import Button from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   return (
     <AnimatedLayout>
@@ -35,12 +37,15 @@ const Home = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button onClick={() => navigate('/auth')} className="text-lg px-8 py-3">
-              Get Started
-            </Button>
-            <Button variant="secondary" onClick={() => navigate('/dashboard')} className="text-lg px-8 py-3">
-              Go to Dashboard
-            </Button>
+            {!currentUser ? (
+              <Button onClick={() => navigate('/auth')} className="text-lg px-8 py-3">
+                Get Started
+              </Button>
+            ) : (
+              <Button variant="secondary" onClick={() => navigate('/dashboard')} className="text-lg px-8 py-3">
+                Go to Dashboard
+              </Button>
+            )}
           </div>
         </motion.div>
 
